@@ -20,7 +20,9 @@ from slugify import slugify  # pylint: disable=missing-manifest-dependency
 import odoo
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
-from odoo.osv.expression import AND, OR, normalize_domain
+from odoo.fields import Domain
+AND = Domain.AND
+OR = Domain.OR
 
 from .strtobool import strtobool
 
@@ -763,19 +765,17 @@ class IrAttachment(models.Model):
             return
 
         domain = AND(
-            (
-                normalize_domain(
-                    [
-                        ("store_fname", "=like", f"{storage}://%"),
-                        # for res_field, see comment in
-                        # _force_storage_to_object_storage
-                        "|",
-                        ("res_field", "=", False),
-                        ("res_field", "!=", False),
-                    ]
-                ),
-                normalize_domain(self._store_in_db_instead_of_object_storage_domain()),
-            )
+            [
+                [
+                    ("store_fname", "=like", f"{storage}://%"),
+                    # for res_field, see comment in
+                    # _force_storage_to_object_storage
+                    "|",
+                    ("res_field", "=", False),
+                    ("res_field", "!=", False),
+                ],
+                self._store_in_db_instead_of_object_storage_domain(),
+            ]
         )
 
         with self._do_in_new_env(new_cr=new_cr) as new_env:

@@ -101,7 +101,7 @@ class FsFileGC(models.Model):
         # the LOCK statement will wait until those concurrent transactions end.
         # But this transaction will not see the new attachements if it has done
         # other requests before the LOCK (like the method _storage() above).
-        cr = self._cr
+        cr = self.env.cr
         cr.commit()  # pylint: disable=invalid-commit
 
         # prevent all concurrent updates on ir_attachment and fs_file_gc
