@@ -26,10 +26,7 @@ class FsFileGC(models.Model):
         """Return True if we are running the tests, so we do not mark files for
         garbage collection into a separate transaction.
         """
-        return (
-            getattr(threading.current_thread(), "testing", False)
-            or self.env.registry.in_test_mode()
-        )
+        return getattr(threading.current_thread(), "testing", False)
 
     @contextmanager
     def _in_new_cursor(self) -> Cursor:
