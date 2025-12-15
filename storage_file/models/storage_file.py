@@ -66,13 +66,10 @@ class StorageFile(models.Model):
     )
     file_type = fields.Selection([])
 
-    _sql_constraints = [
-        (
-            "path_uniq",
-            "unique(relative_path, backend_id)",
-            "The private path must be uniq per backend",
-        )
-    ]
+    _check_unique_path_per_backend = models.Constraint(
+        "UNIQUE(relative_path, backend_id)",
+        "The private path must be uniq per backend",
+    )
 
     def write(self, vals):
         if "data" in vals:

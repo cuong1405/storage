@@ -17,13 +17,10 @@ class FsFileGC(models.Model):
     store_fname = fields.Char("Stored Filename")
     fs_storage_code = fields.Char("Storage Code")
 
-    _sql_constraints = [
-        (
-            "store_fname_uniq",
-            "unique (store_fname)",
-            "The stored filename must be unique!",
-        ),
-    ]
+    _check_unique_store_filename = models.Constraint(
+        "UNIQUE(store_fname)",
+        "The stored filename must be unique!",
+    )
 
     def _is_test_mode(self) -> bool:
         """Return True if we are running the tests, so we do not mark files for

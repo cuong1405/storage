@@ -189,13 +189,10 @@ class FSStorage(models.Model):
         "* List File : List all files from root directory",
     )
 
-    _sql_constraints = [
-        (
-            "code_uniq",
-            "unique(code)",
-            "The code must be unique",
-        ),
-    ]
+    _check_unique_storage_code = models.Constraint(
+        "UNIQUE(code)",
+        "The code must be unique",
+    )
 
     _server_env_section_name_field = "code"
 
