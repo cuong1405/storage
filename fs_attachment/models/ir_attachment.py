@@ -243,43 +243,6 @@ class IrAttachment(models.Model):
             IrAttachment, self.with_context(mimetype=mimetype)
         )._get_datas_related_values(data, mimetype)
 
-    @api.model
-    def _get_path(self, bin_data, sha):
-        """Override _get_path for Odoo 19 compatibility
-
-        Handle external storage for attachments in Odoo 19, which uses _get_path()
-        instead of _file_write() to compute store_fname.
-        """
-        storage = self.env.context.get("storage_location") or self._storage()
-
-        if storage in self._get_storage_codes():
-            # Use external storage
-            fs = self._get_fs_storage_for_code(storage)
-            path = self._get_fs_path(storage, bin_data)
-            dirname = os.path.dirname(path)
-
-            if not fs.exists(dirname):
-                fs.makedirs(dirname)
-
-            store_fname = f"{storage}://{path}"
-
-            # Write the file to external storage
-            kwargs = self._storage_write_option(fs)
-            with fs.open(path, "wb", **kwargs) as f:
-                f.write(bin_data)
-
-            # Mark for garbage collection
-            self._fs_mark_for_gc(store_fname)
-
-            # Return the storage name and full path (for compatibility)
-            # Note: _full_path for external storage should be handled differently
-            full_path = store_fname  # For external storage, use the store_fname itself
-
-            return store_fname, full_path
-        else:
-            # Fall back to base implementation for local filestore
-            return super()._get_path(bin_data, sha)
-
     ###########################################################
     # Odoo methods that we override to use the object storage #
     ###########################################################
@@ -401,6 +364,43 @@ class IrAttachment(models.Model):
     def _set_attachment_data(self, asbytes) -> None:  # pylint: disable=missing-return
         super()._set_attachment_data(asbytes)
         self._enforce_meaningful_storage_filename()
+
+    @api.model
+    def _get_path(self, bin_data, sha):
+        """Override _get_path for Odoo 19 compatibility
+
+        Handle external storage for attachments in Odoo 19, which uses _get_path()
+        instead of _file_write() to compute store_fname.
+        """
+        storage = self.env.context.get("storage_location") or self._storage()
+
+        if storage in self._get_storage_codes():
+            # Use external storage
+            fs = self._get_fs_storage_for_code(storage)
+            path = self._get_fs_path(storage, bin_data)
+            dirname = os.path.dirname(path)
+
+            if not fs.exists(dirname):
+                fs.makedirs(dirname)
+
+            store_fname = f"{storage}://{path}"
+
+            # Write the file to external storage
+            kwargs = self._storage_write_option(fs)
+            with fs.open(path, "wb", **kwargs) as f:
+                f.write(bin_data)
+
+            # Mark for garbage collection
+            self._fs_mark_for_gc(store_fname)
+
+            # Return the storage name and full path (for compatibility)
+            # Note: _full_path for external storage should be handled differently
+            full_path = store_fname  # For external storage, use the store_fname itself
+
+            return store_fname, full_path
+        else:
+            # Fall back to base implementation for local filestore
+            return super()._get_path(bin_data, sha)
 
     ##############################################
     # Internal methods to use the object storage #
