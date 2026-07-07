@@ -24,6 +24,7 @@ from odoo.fields import Domain
 AND = Domain.AND
 OR = Domain.OR
 
+from ..fs_stream import FsStream
 from .strtobool import strtobool
 
 _logger = logging.getLogger(__name__)
@@ -397,6 +398,11 @@ class IrAttachment(models.Model):
                 self._storage_file_delete(fname)
         else:
             super()._file_delete(fname)
+
+    def _to_http_stream(self):
+        if self.store_fname and self._is_file_from_a_storage(self.store_fname):
+            return FsStream.from_fs_attachment(self)
+        return super()._to_http_stream()
 
     def _set_attachment_data(self, asbytes) -> None:  # pylint: disable=missing-return
         super()._set_attachment_data(asbytes)
